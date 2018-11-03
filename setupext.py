@@ -5,6 +5,7 @@ from distutils.core import Extension
 import glob
 import hashlib
 import importlib
+import logging
 import os
 import pathlib
 import platform
@@ -14,10 +15,11 @@ import sys
 import tarfile
 import textwrap
 import urllib.request
-import warnings
 
 import setuptools
 import versioneer
+
+_log = logging.getLogger(__name__)
 
 
 def _get_xdg_cache_dir():
@@ -765,7 +767,7 @@ class Numpy(SetupPackage):
         ext.include_dirs.append(numpy.get_include())
         if not has_include_file(
                 ext.include_dirs, os.path.join("numpy", "arrayobject.h")):
-            warnings.warn(
+            _log.warning(
                 "The C headers for numpy could not be found. "
                 "You may need to install the development package")
 
@@ -1270,6 +1272,8 @@ class BackendMacOSX(OptionalBackendPackage):
 
         ext = make_extension('matplotlib.backends._macosx', sources)
         ext.extra_link_args.extend(['-framework', 'Cocoa'])
+        if platform.python_implementation().lower() == 'pypy':
+            ext.extra_compile_args.append('-DPYPY=1')
         return ext
 
 

@@ -24,7 +24,7 @@ def _generate_deprecation_message(
         obj_type='attribute', addendum='', *, removal=''):
 
     if removal == "":
-        removal = {"2.2": "in 3.1", "3.0": "in 3.2"}.get(
+        removal = {"2.2": "in 3.1", "3.0": "in 3.2", "3.1": "in 3.3"}.get(
             since, "two minor releases later")
     elif removal:
         if pending:
@@ -51,8 +51,8 @@ def _generate_deprecation_message(
 
 
 def warn_deprecated(
-        since, message='', name='', alternative='', pending=False,
-        obj_type='attribute', addendum='', *, removal=''):
+        since, *, message='', name='', alternative='', pending=False,
+        obj_type='attribute', addendum='', removal=''):
     """
     Used to display deprecation in a standard way.
 
@@ -112,8 +112,8 @@ def warn_deprecated(
     _warn_external(message, category)
 
 
-def deprecated(since, message='', name='', alternative='', pending=False,
-               obj_type=None, addendum='', *, removal=''):
+def deprecated(since, *, message='', name='', alternative='', pending=False,
+               obj_type=None, addendum='', removal=''):
     """
     Decorator to mark a function, a class, or a property as deprecated.
 
@@ -201,18 +201,21 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
             class _deprecated_property(property):
                 def __get__(self, instance, owner):
-                    from . import _warn_external
-                    _warn_external(message, category)
+                    if instance is not None:
+                        from . import _warn_external
+                        _warn_external(message, category)
                     return super().__get__(instance, owner)
 
                 def __set__(self, instance, value):
-                    from . import _warn_external
-                    _warn_external(message, category)
+                    if instance is not None:
+                        from . import _warn_external
+                        _warn_external(message, category)
                     return super().__set__(instance, value)
 
                 def __delete__(self, instance):
-                    from . import _warn_external
-                    _warn_external(message, category)
+                    if instance is not None:
+                        from . import _warn_external
+                        _warn_external(message, category)
                     return super().__delete__(instance)
 
             def finalize(_, new_doc):

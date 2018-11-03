@@ -81,7 +81,7 @@ def _to_bool(s):
 def _sanity_check(fh):
     """
     Check if the file at least looks like AFM.
-    If not, raise :exc:`RuntimeError`.
+    If not, raise `RuntimeError`.
     """
 
     # Remember the file position in case the caller wants to
@@ -357,7 +357,7 @@ def _parse_optional(fh):
     return d[b'StartKernData'], d[b'StartComposites']
 
 
-@deprecated("3.0", "Use the class AFM instead.")
+@deprecated("3.0", alternative="the AFM class")
 def parse_afm(fh):
     return _parse_afm(fh)
 

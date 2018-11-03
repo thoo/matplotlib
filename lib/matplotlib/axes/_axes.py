@@ -1,4 +1,4 @@
-import collections
+import collections.abc
 import functools
 import itertools
 import logging
@@ -126,6 +126,14 @@ class Axes(_AxesBase):
     instance.  The events you can connect to are 'xlim_changed' and
     'ylim_changed' and the callback will be called with func(*ax*)
     where *ax* is the :class:`Axes` instance.
+
+    Attributes
+    ----------
+    dataLim : `.BBox`
+        The bounding box enclosing all data displayed in the Axes.
+    viewLim : `.BBox`
+        The view limits in data coordinates.
+
     """
     ### Labelling, legend and texts
 
@@ -2048,8 +2056,7 @@ class Axes(_AxesBase):
         if where not in ('pre', 'post', 'mid'):
             raise ValueError("'where' argument to step must be "
                              "'pre', 'post' or 'mid'")
-        kwargs['linestyle'] = 'steps-' + where + kwargs.get('linestyle', '')
-
+        kwargs['drawstyle'] = 'steps-' + where
         return self.plot(x, y, *args, **kwargs)
 
     @_preprocess_data(replace_names=["x", "left",
@@ -4189,7 +4196,8 @@ class Axes(_AxesBase):
                 co is not None or
                 isinstance(c, str) or
                 (isinstance(c, collections.Iterable) and
-                    isinstance(c[0], str))):
+                    len(c) > 0 and
+                    isinstance(cbook.safe_first_element(c), str))):
             c_array = None
         else:
             try:  # First, does 'c' look suitable for value-mapping?
@@ -4624,8 +4632,9 @@ class Axes(_AxesBase):
         # Set normalizer if bins is 'log'
         if bins == 'log':
             if norm is not None:
-                warnings.warn("Only one of 'bins' and 'norm' arguments can be "
-                              "supplied, ignoring bins={}".format(bins))
+                cbook._warn_external("Only one of 'bins' and 'norm' "
+                                     "arguments can be supplied, ignoring "
+                                     "bins={}".format(bins))
             else:
                 norm = mcolors.LogNorm()
             bins = None

@@ -73,8 +73,9 @@ class Patch(artist.Artist):
         self._fill = True  # needed for set_facecolor call
         if color is not None:
             if edgecolor is not None or facecolor is not None:
-                warnings.warn("Setting the 'color' property will override"
-                              "the edgecolor or facecolor properties.")
+                cbook._warn_external(
+                    "Setting the 'color' property will override"
+                    "the edgecolor or facecolor properties.")
             self.set_color(color)
         else:
             self.set_edgecolor(edgecolor)
@@ -522,8 +523,8 @@ class Patch(artist.Artist):
             except AttributeError:
                 # if we end up with a GC that does not have this method
                 cbook.warn_deprecated(
-                    "3.1", "Your backend does not support setting the hatch "
-                    "color; such backends will become unsupported in "
+                    "3.1", message="Your backend does not support setting the "
+                    "hatch color; such backends will become unsupported in "
                     "Matplotlib 3.3.")
 
         if self.get_sketch_params() is not None:

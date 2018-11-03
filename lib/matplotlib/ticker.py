@@ -173,8 +173,6 @@ from matplotlib import rcParams
 from matplotlib import cbook
 from matplotlib import transforms as mtransforms
 
-import warnings
-
 _log = logging.getLogger(__name__)
 
 __all__ = ('TickHelper', 'Formatter', 'FixedFormatter',
@@ -300,6 +298,10 @@ class Formatter(TickHelper):
         explicit :meth:`format_data_short` method
         """
         return s
+
+    def _set_locator(self, locator):
+        """ Subclasses may want to override this to set a locator. """
+        pass
 
 
 class IndexFormatter(Formatter):
@@ -1441,8 +1443,9 @@ class Locator(TickHelper):
         Do nothing, and rase a warning. Any locator class not supporting the
         set_params() function will call this.
         """
-        warnings.warn("'set_params()' not defined for locator of type " +
-                      str(type(self)))
+        cbook._warn_external(
+            "'set_params()' not defined for locator of type " +
+            str(type(self)))
 
     def __call__(self):
         """Return the locations of the ticks"""
@@ -1878,16 +1881,12 @@ class MaxNLocator(Locator):
     @staticmethod
     def _validate_steps(steps):
         if not np.iterable(steps):
-            raise ValueError('steps argument must be a sequence of numbers '
-                             'from 1 to 10')
+            raise ValueError('steps argument must be an increasing sequence '
+                             'of numbers between 1 and 10 inclusive')
         steps = np.asarray(steps)
-        if np.any(np.diff(steps) <= 0):
-            raise ValueError('steps argument must be uniformly increasing')
-        if steps[-1] > 10 or steps[0] < 1:
-            warnings.warn('Steps argument should be a sequence of numbers\n'
-                          'increasing from 1 to 10, inclusive. Behavior with\n'
-                          'values outside this range is undefined, and will\n'
-                          'raise a ValueError in future versions of mpl.')
+        if np.any(np.diff(steps) <= 0) or steps[-1] > 10 or steps[0] < 1:
+            raise ValueError('steps argument must be an increasing sequence '
+                             'of numbers between 1 and 10 inclusive')
         if steps[0] != 1:
             steps = np.hstack((1, steps))
         if steps[-1] != 10:
@@ -2245,7 +2244,7 @@ class LogLocator(Locator):
         if vmin > vmax:
             vmin, vmax = vmax, vmin
         if vmax <= 0:
-            warnings.warn(
+            cbook._warn_external(
                 "Data has no positive values, and therefore cannot be "
                 "log-scaled.")
             return 1, 10
@@ -2564,8 +2563,8 @@ class AutoMinorLocator(Locator):
     def __call__(self):
         'Return the locations of the ticks'
         if self.axis.get_scale() == 'log':
-            warnings.warn('AutoMinorLocator does not work with logarithmic '
-                          'scale')
+            cbook._warn_external('AutoMinorLocator does not work with '
+                                 'logarithmic scale')
             return []
 
         majorlocs = self.axis.get_majorticklocs()

@@ -20,12 +20,12 @@ is a thin wrapper over :meth:`~matplotlib.figure.Figure.colorbar`.
 '''
 
 import logging
-import warnings
 
 import numpy as np
 
 import matplotlib as mpl
 import matplotlib.artist as martist
+import matplotlib.cbook as cbook
 import matplotlib.collections as collections
 import matplotlib.colors as colors
 import matplotlib.contour as contour
@@ -211,7 +211,7 @@ docstring.interpd.update(colorbar_doc=colorbar_doc)
 def _set_ticks_on_axis_warn(*args, **kw):
     # a top level function which gets put in at the axes'
     # set_xticks set_yticks by _patch_ax
-    warnings.warn("Use the colorbar set_ticks() method instead.")
+    cbook._warn_external("Use the colorbar set_ticks() method instead.")
 
 
 class _ColorbarAutoLocator(ticker.MaxNLocator):
@@ -386,6 +386,7 @@ class ColorbarBase(cm.ScalarMappable):
         self.outline = None
         self.patch = None
         self.dividers = None
+        self._manual_tick_data_values = None
 
         if ticklocation == 'auto':
             ticklocation = 'bottom' if orientation == 'horizontal' else 'right'
@@ -573,7 +574,17 @@ class ColorbarBase(cm.ScalarMappable):
 
     def get_ticks(self, minor=False):
         """Return the x ticks as a list of locations"""
-        return self._tick_data_values
+        if self._manual_tick_data_values is None:
+            ax = self.ax
+            if self.orientation == 'vertical':
+                long_axis, short_axis = ax.yaxis, ax.xaxis
+            else:
+                long_axis, short_axis = ax.xaxis, ax.yaxis
+            return long_axis.get_majorticklocs()
+        else:
+            # We made the axes manually, the old way, and the ylim is 0-1,
+            # so the majorticklocs are in those units, not data units.
+            return self._manual_tick_data_values
 
     def set_ticklabels(self, ticklabels, update_ticks=True):
         """
@@ -586,7 +597,7 @@ class ColorbarBase(cm.ScalarMappable):
             if update_ticks:
                 self.update_ticks()
         else:
-            warnings.warn("set_ticks() must have been called.")
+            cbook._warn_external("set_ticks() must have been called.")
         self.stale = True
 
     def _config_axes(self, X, Y):
@@ -755,7 +766,7 @@ class ColorbarBase(cm.ScalarMappable):
         else:
             eps = (intv[1] - intv[0]) * 1e-10
             b = b[(b <= intv[1] + eps) & (b >= intv[0] - eps)]
-        self._tick_data_values = b
+        self._manual_tick_data_values = b
         ticks = self._locate(b)
         formatter.set_locs(b)
         ticklabels = [formatter(t, i) for i, t in enumerate(b)]
@@ -1204,8 +1215,8 @@ class Colorbar(ColorbarBase):
         long_axis = ax.yaxis if self.orientation == 'vertical' else ax.xaxis
 
         if long_axis.get_scale() == 'log':
-            warnings.warn('minorticks_on() has no effect on a '
-                          'logarithmic colorbar axis')
+            cbook._warn_external('minorticks_on() has no effect on a '
+                                 'logarithmic colorbar axis')
         else:
             long_axis.set_minor_locator(_ColorbarAutoMinorLocator(self))
 
@@ -1217,8 +1228,8 @@ class Colorbar(ColorbarBase):
         long_axis = ax.yaxis if self.orientation == 'vertical' else ax.xaxis
 
         if long_axis.get_scale() == 'log':
-            warnings.warn('minorticks_off() has no effect on a '
-                          'logarithmic colorbar axis')
+            cbook._warn_external('minorticks_off() has no effect on a '
+                                 'logarithmic colorbar axis')
         else:
             long_axis.set_minor_locator(ticker.NullLocator())
 

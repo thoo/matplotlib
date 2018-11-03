@@ -7,10 +7,10 @@ Hunter (jdhunter@ace.bsd.uchicago.edu).
 Copyright (C) Jeremy O'Donoghue & John Hunter, 2003-4.
 """
 
-import os.path
+import logging
 import math
+import os.path
 import sys
-import warnings
 import weakref
 
 import matplotlib
@@ -29,6 +29,8 @@ from matplotlib.backend_managers import ToolManager
 from matplotlib import cbook, rcParams, backend_tools
 
 import wx
+
+_log = logging.getLogger(__name__)
 
 # Debugging settings here...
 # Debug level set here. If the debug level is less than 5, information
@@ -122,8 +124,8 @@ class TimerWx(TimerBase):
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], wx.EvtHandler):
             cbook.warn_deprecated(
-                "3.0", "Passing a wx.EvtHandler as first argument to the "
-                "TimerWx constructor is deprecated since %(version)s.")
+                "3.0", message="Passing a wx.EvtHandler as first argument to "
+                "the TimerWx constructor is deprecated since %(since)s.")
             args = args[1:]
         TimerBase.__init__(self, *args, **kwargs)
         self._timer = wx.Timer()
@@ -1573,10 +1575,10 @@ class NavigationToolbar2Wx(NavigationToolbar2, wx.ToolBar):
             if ext in ('svg', 'pdf', 'ps', 'eps', 'png') and format != ext:
                 # looks like they forgot to set the image type drop
                 # down, going with the extension.
-                warnings.warn(
+                _log.warning(
                     'extension %s did not match the selected '
                     'image type %s; going with %s' %
-                    (ext, format, ext), stacklevel=2)
+                    (ext, format, ext))
                 format = ext
             try:
                 self.canvas.figure.savefig(
@@ -1837,10 +1839,10 @@ class SaveFigureWx(backend_tools.SaveFigureBase):
         if ext in ('svg', 'pdf', 'ps', 'eps', 'png') and format != ext:
             # looks like they forgot to set the image type drop
             # down, going with the extension.
-            warnings.warn(
+            _log.warning(
                 'extension %s did not match the selected '
                 'image type %s; going with %s' %
-                (ext, format, ext), stacklevel=2)
+                (ext, format, ext))
             format = ext
         if default_dir != "":
             matplotlib.rcParams['savefig.directory'] = dirname
